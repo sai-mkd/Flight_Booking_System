@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flight Ticket</title>
+
+    <style>
+        .ticket {
+            width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            border: 2px dashed #333;
+            font-family: Arial;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .info {
+            margin: 10px 0;
+        }
+
+        .btn {
+            margin-top: 20px;
+            padding: 10px;
+            background: green;
+            color: white;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="ticket" id="ticket">
+
+    <div class="title">✈ Flight Ticket</div>
+
+    <div id="content">Loading...</div>
+
+    <button class="btn" onclick="window.print()">
+        Print / Download PDF
+    </button>
+
+</div>
+
+<script>
+
+    const pnr = window.location.pathname.split("/").pop();
+
+    fetch("/api/customer/bookings/pnr/" + pnr)
+        .then(res => res.json())
+        .then(data => {
+
+            document.getElementById("content").innerHTML = `
+        <div class="info"><b>PNR:</b> ${data.pnr}</div>
+        <div class="info"><b>Flight:</b> ${data.flightNumber}</div>
+        <div class="info"><b>Airline:</b> ${data.airline}</div>
+        <div class="info"><b>From:</b> ${data.sourceAirport}</div>
+        <div class="info"><b>To:</b> ${data.destinationAirport}</div>
+        <div class="info"><b>Departure:</b> ${data.departureTime}</div>
+        <div class="info"><b>Arrival:</b> ${data.arrivalTime}</div>
+        <div class="info"><b>Seats:</b> ${data.numberOfSeats}</div>
+        <div class="info"><b>Status:</b> ${data.bookingStatus}</div>
+        <div class="info"><b>Total Price:</b> ₹${data.totalPrice}</div>
+    `;
+        });
+
+</script>
+
+</body>
+</html>

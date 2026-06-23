@@ -1,0 +1,126 @@
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Book Flight</title>
+</head>
+<body>
+
+<h2>Book Flight</h2>
+
+<div id="flightDetails">Loading flight details...</div>
+
+<hr>
+
+<form id="bookingForm">
+
+    <label>Passenger Name:</label>
+    <input type="text" id="fullName" required>
+
+    <br><br>
+
+    <label>Age:</label>
+    <input type="number" id="age" required>
+
+    <br><br>
+
+    <label>Gender:</label>
+    <select id="gender">
+        <option value="MALE">Male</option>
+        <option value="FEMALE">Female</option>
+    </select>
+
+    <br><br>
+
+    <button type="submit">Confirm Booking</button>
+
+</form>
+
+<p id="message"></p>
+
+<script>
+
+    const flightId = window.location.pathname.split("/").pop();
+
+    async function loadFlight() {
+
+        const token = localStorage.getItem("token");
+
+        const response = await fetch("/api/flights/" + flightId, {
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+
+        if (!response.ok) {
+            document.getElementById("flightDetails")
+                .innerText = "Failed to load flight details";
+            return;
+        }
+
+        const flight = await response.json();
+
+        document.getElementById("flightDetails").innerHTML = `
+        <h3>Flight Details</h3>
+        <p><b>Flight:</b> ${flight.flightNumber}</p>
+        <p><b>Airline:</b> ${flight.airline}</p>
+        <p><b>From:</b> ${flight.sourceAirport}</p>
+        <p><b>To:</b> ${flight.destinationAirport}</p>
+        <p><b>Departure:</b> ${flight.departureTime}</p>
+        <p><b>Arrival:</b> ${flight.arrivalTime}</p>
+        <p><b>Price:</b> ${flight.price}</p>
+        <p><b>Available Seats:</b> ${flight.availableSeats}</p>
+    `;
+    }
+
+    loadFlight();
+
+    document.getElementById("bookingForm")
+        .addEventListener("submit", async function(e){
+
+            e.preventDefault();
+
+            const token = localStorage.getItem("token");
+
+            const requestBody = {
+                flightId: parseInt(flightId),
+                numberOfSeats: 1,
+                passengers: [
+                    {
+                        fullName: document.getElementById("fullName").value,
+                        age: parseInt(document.getElementById("age").value),
+                        gender: document.getElementById("gender").value
+                    }
+                ]
+            };
+
+            const response = await fetch("/api/customer/bookings", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (response.ok) {
+
+                const result = await response.json();
+
+                alert("Booking Successful! PNR: " + result.pnr);
+
+                window.location.href = "/my-bookings";
+
+            } else {
+
+                const error = await response.text();
+
+                document.getElementById("message").innerText = error;
+            }
+
+        });
+
+</script>
+
+</body>
+</html>
